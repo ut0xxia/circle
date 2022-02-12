@@ -10,25 +10,31 @@
 
 int main()
 {
-	double previous_x, previous_y, present_x, present_y, t;
+	const int x0 = 0, y0 = 0, r = 1;
+	const double pi = 4 * atan(1), dt = 0.005;
+	bool success;
 	std::string function;
+	std::vector<double>xs;
+	std::vector<double>ys;
 
 	std::cout << "f(z)=";
 	std::cin >> function;
-	FunctionParser fp;
-	RGBABitmapImageReference* imageReference = CreateRGBABitmapImageReference();
+	FunctionParser_cd fp;
 	fp.Parse(function, "z");
 
-	for (t = 0; t < 8 * atan(1) - 0.005; t = t + 0.005) {
-		double cost = cos(t), sint = sin(t), costa = cos(t + 0.005), sinta = sin(t + 0.005);
-		previous_x = fp.Eval(&cost);
-		previous_y = fp.Eval(&sint);
-		present_x = fp.Eval(&costa);
-		present_y = fp.Eval(&sinta);
-		DrawLine(imageReference->image, previous_x, previous_y, present_x, present_y, 2, GetGray(0.3));
+	for (double t = 0; t < 2 * pi; t += dt){
+		std::complex<double>z=(x0 + r * cos(t), y0 + r * sin(t));
+		std::complex<double>f = fp.Eval(&z);
+		xs.push_back(f.real());
+		ys.push_back(f.imag());
 	}
+
+	StringReference* errorMessage = new StringReference();
+	RGBABitmapImageReference* imageReference = CreateRGBABitmapImageReference();
+	DrawScatterPlot(imageReference, 1000, 1000, &xs, &ys, errorMessage);
 	std::vector<double>* pngdata = ConvertToPNG(imageReference->image);
 	WriteToFile(pngdata, "main.png");
 	DeleteImage(imageReference->image);
+
 	return 0;
-}
+}	
